@@ -1,0 +1,86 @@
+{
+  "success": 1,
+  "data": [
+    {
+      "id": 1,
+      "title": "Head of School Bulletin - Friday 23rd October",
+      "description": "<p>Dear Students and Parents/Carers</p><p>Please see attached, today&#39;s bulletin.&nbsp;</p><p>Wishing you all a wonderful half term break!</p>",
+      "school_name": "Example School",
+      "teacher_name": "Mrs A Office",
+      "school_logo": "",
+      "sticky": "no",
+      "state": "viewed",
+      "timestamp": "2026-10-23T15:14:47+00:00",
+      "attachments": [
+        {
+          "id": 1,
+          "filename": "Bulletin.pdf",
+          "url": "https://files.example.invalid/bulletin.pdf",
+          "scan_status": "pass",
+          "scan_status_message": ""
+        }
+      ],
+      "for_pupils": [
+        "Alex Example"
+      ],
+      "comment_visibility": "none",
+      "allow_comments": "no",
+      "allow_reactions": "no",
+      "allow_consent": "yes",
+      "priority_pinned": "no",
+      "requires_consent": "no",
+      "can_change_consent": true,
+      "consent": null,
+      "pupil_consents": []
+    },
+    {
+      "id": 2,
+      "title": "Rail season ticket scheme",
+      "description": "<p>The school is now registered with the rail season ticket scheme.</p>",
+      "school_name": "Example School",
+      "teacher_name": "Miss B Office",
+      "school_logo": "",
+      "sticky": "no",
+      "state": "viewed",
+      "timestamp": "2026-10-21T13:34:01+00:00",
+      "attachments": [],
+      "for_pupils": [
+        "Alex Example"
+      ],
+      "comment_visibility": "none",
+      "allow_comments": "no",
+      "allow_reactions": "no",
+      "allow_consent": "yes",
+      "priority_pinned": "no",
+      "requires_consent": "no",
+      "can_change_consent": true,
+      "consent": null,
+      "pupil_consents": []
+    },
+    {
+      "id": 3,
+      "title": "Year 9 museum trip",
+      "description": "<p>Please give consent by Friday.</p>",
+      "school_name": "Example School",
+      "teacher_name": "Miss B Office",
+      "school_logo": "",
+      "sticky": "yes",
+      "state": "viewed",
+      "timestamp": "2026-10-20T08:00:00+00:00",
+      "attachments": [],
+      "for_pupils": [
+        "Alex Example"
+      ],
+      "comment_visibility": "none",
+      "allow_comments": "no",
+      "allow_reactions": "no",
+      "allow_consent": "yes",
+      "priority_pinned": "no",
+      "requires_consent": "yes",
+      "can_change_consent": true,
+      "consent": null,
+      "pupil_consents": []
+    }
+  ],
+  "meta": []
+}

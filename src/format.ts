@@ -139,8 +139,11 @@ export function toDay(
 // ---- text rendering --------------------------------------------------------
 
 /** Optional styling (colour on a terminal). Defaults to plain text for agents and pipes. */
-export type Style = (format: "bold" | "dim" | "green" | "yellow" | "cyan", text: string) => string;
-const plain: Style = (_f, t) => t;
+export type Style = (format: "bold" | "dim" | "green" | "yellow" | "cyan" | "red" | "magenta", text: string) => string;
+export const plain: Style = (_f, t) => t;
+
+/** Section heading: bold magenta on a terminal, plain otherwise. */
+export const heading = (s: Style, text: string) => s("bold", s("magenta", text));
 
 export interface RenderOptions {
   full?: boolean; // full homework descriptions
@@ -196,7 +199,7 @@ export function renderDay(d: Day, opts: RenderOptions = {}): string {
   return lines.join("\n");
 }
 
-function indent(s: string, pad: string): string {
+export function indent(s: string, pad: string): string {
   return s
     .split("\n")
     .map((l) => pad + l)

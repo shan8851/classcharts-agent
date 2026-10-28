@@ -11,6 +11,10 @@ export interface RawPupil {
   timezone: string;
   display_homework: boolean;
   display_timetable: boolean;
+  display_behaviour?: boolean;
+  display_detentions?: boolean;
+  display_announcements?: boolean;
+  display_attendance?: boolean;
   homework_todo_count: number;
   homework_late_count: number;
 }
@@ -60,4 +64,57 @@ export interface ApiResponse<T, M = unknown> {
   error?: string;
   data: T;
   meta: M;
+}
+
+export interface RawAnnouncement {
+  id: number;
+  title: string;
+  description: string | null;
+  teacher_name: string;
+  timestamp: string;
+  sticky: "yes" | "no";
+  priority_pinned: "yes" | "no";
+  state: string | null; // "viewed" etc.
+  requires_consent: "yes" | "no";
+  consent: { consent_given?: "yes" | "no" | null } | null;
+  attachments: { filename: string; url?: string }[] | null;
+}
+
+export interface RawActivityPoint {
+  id: number;
+  type: string; // "behaviour", "detention"…
+  polarity: "positive" | "negative" | "blank" | null;
+  reason: string;
+  score: number;
+  timestamp: string; // "YYYY-MM-DD HH:MM:SS", school local time
+  lesson_name: string | null;
+  teacher_name: string | null;
+  note: string | null;
+}
+
+// From the community schema; not yet seen in a real response.
+export interface RawDetention {
+  id: number;
+  attended: "yes" | "no" | "upscaled" | "pending" | string;
+  date: string;
+  time: string | null;
+  length: number | null;
+  location: string | null;
+  notes: string | null;
+  lesson?: { name?: string; subject?: { name?: string } } | null;
+  lesson_pupil_behaviour?: { reason?: string } | null;
+  teacher?: { title?: string; first_name?: string; last_name?: string } | null;
+  detention_type?: { name?: string } | null;
+}
+
+export interface RawAttendanceSession {
+  status: string; // present, late, absent, ...
+  code: string;
+  late_minutes: number | string;
+}
+
+export interface AttendanceMeta {
+  percentage: number | string;
+  percentage_singe_august: number | string; // sic
+  sessions: string[];
 }

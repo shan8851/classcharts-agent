@@ -97,6 +97,20 @@ describe("ClassChartsClient", () => {
     );
   });
 
+  it("pages activity by the last item's id until an empty page", async () => {
+    const pages = [[{ id: 30 }, { id: 29 }], [{ id: 28 }], []];
+    const { fn, calls } = mockFetch((url) => {
+      if (url.endsWith("/parent/login")) return loginResponse();
+      // meta.last_id is false on the first page in real responses; it must not stop paging
+      return json({ success: 1, data: pages.shift(), meta: { last_id: false } });
+    });
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    const points = await client.activity(1, { from: "2026-10-01", to: "2026-10-28" });
+    expect(points.map((p) => p.id)).toEqual([30, 29, 28]);
+    const lastIds = calls.slice(1).map((c) => new URL(c.url).searchParams.get("last_id"));
+    expect(lastIds).toEqual([null, "29", "28"]);
+  });
+
   it("reuses a cached session without logging in", async () => {
     const store = memorySessionStore();
     store.save({ cookie: "c=1", sessionId: "cached", refreshedAt: 1_000 });

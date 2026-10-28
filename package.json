@@ -1,8 +1,8 @@
 {
   "name": "classcharts-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Read-only ClassCharts CLI for AI agents: homework and timetable for a parent account.",
+  "description": "Read-only ClassCharts CLI for AI agents: homework, timetable, announcements, behaviour, detentions and attendance for a parent account.",
   "license": "MIT",
   "author": "Asam Shan",
   "homepage": "https://github.com/shan8851/classcharts-agent#readme",
