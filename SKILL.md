@@ -32,7 +32,7 @@ If `classcharts` isn't on the PATH but this skill folder is a clone of the repo,
 
 Dates: `YYYY-MM-DD`, `today`, `tomorrow`, `yesterday`, `next`, or a weekday (`mon`, `friday`; means the next one, today included).
 Add `--json` if you need to process the result; text output is already compact.
-If more than one child is linked, pass `--pupil <first name or id>`.
+If more than one child is linked, every command needs `--pupil <first name or id>` (or `CLASSCHARTS_PUPIL` set); it refuses to guess. For a scheduled or unattended agent, prefer the id.
 
 ## Reading the output
 
@@ -58,7 +58,7 @@ If more than one child is linked, pass `--pupil <first name or id>`.
 
 - Exit code 2: a login problem. "No ClassCharts login found": a person needs to run `classcharts setup`. "Sent the login back to its sign-in page": usually too many attempts (wait a few minutes, don't retry in a loop), otherwise a wrong email or password; tell the human. "Login failed" or "not understood": wrong details, or ClassCharts changed its login; tell the human.
 - The session is cached in `~/.cache/classcharts-agent/`, so repeated calls don't log in again. Prefer one `week` call over five `day` calls anyway.
-- Exit code 1: a bad date or another error. The message says what went wrong.
+- Exit code 1: a bad date, a refused request, or ClassCharts being unavailable or sending something unexpected. The message says what went wrong. **An error never means "nothing due"**: don't report an empty day or "no homework" after one; say the check failed.
 
 ## Setup (once)
 

@@ -57,7 +57,7 @@ DATE: YYYY-MM-DD, today, tomorrow, yesterday, next, or a weekday (mon, friday…
       week next          = next week
 
 Options:
-  --pupil <id|name> Which child (default: CLASSCHARTS_PUPIL, else the first)
+  --pupil <id|name> Which child (default: CLASSCHARTS_PUPIL; required if several are linked)
   --from <DATE>     Start of range (homework, announcements, behaviour, attendance)
   --to <DATE>       End of range
   --todo            homework: only items not marked done
@@ -93,11 +93,17 @@ function loadEnv(files: (string | undefined)[]) {
 
 export function pickPupil(pupils: RawPupil[], wanted?: string): RawPupil {
   if (pupils.length === 0) throw new Error("No children are linked to this ClassCharts account.");
-  if (!wanted) return pupils[0];
+  const linked = pupils.map((p) => `${p.name} (${p.id})`).join(", ");
+  if (!wanted?.trim()) {
+    // With several children, never guess: an agent could report the wrong child's day.
+    if (pupils.length > 1) {
+      throw new Error(`More than one child is linked; choose one with --pupil or CLASSCHARTS_PUPIL. Linked: ${linked}`);
+    }
+    return pupils[0];
+  }
   const w = wanted.trim().toLowerCase();
   const byId = pupils.find((p) => String(p.id) === w);
   if (byId) return byId;
-  const linked = pupils.map((p) => `${p.name} (${p.id})`).join(", ");
   const matches = pupils.filter((p) => p.first_name?.toLowerCase() === w || p.name?.toLowerCase() === w);
   if (matches.length > 1) throw new Error(`More than one pupil matches "${wanted}"; use the id. Linked: ${linked}`);
   if (!matches.length) throw new Error(`No pupil matching "${wanted}". Linked: ${linked}`);

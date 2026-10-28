@@ -111,6 +111,62 @@ describe("ClassChartsClient", () => {
     expect(lastIds).toEqual([null, "29", "28"]);
   });
 
+  it("doesn't log in again when the session is fine but a request is refused", async () => {
+    const { fn, calls } = mockFetch((url) => {
+      if (url.endsWith("/parent/login")) return loginResponse();
+      if (url.endsWith("/ping")) return json({ success: 1, data: {}, meta: { session_id: "sess-2" } });
+      if (url.includes("/detentions/")) return json({ success: 0, error: "Not allowed" });
+      return json({ success: 1, data: [], meta: {} });
+    });
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    await expect(client.detentions(1)).rejects.toThrow(/refused \/detentions\/1: Not allowed/);
+    expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(1); // the first one only
+    expect(calls.map((c) => new URL(c.url).pathname)).toContain("/apiv2parent/ping");
+  });
+
+  it("treats HTTP errors as errors without logging in again", async () => {
+    const { fn, calls } = mockFetch((url) =>
+      url.endsWith("/parent/login") ? loginResponse() : new Response("Service Unavailable", { status: 503 }),
+    );
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    await expect(client.homeworks(1, { from: "a", to: "b" })).rejects.toThrow(/HTTP 503/);
+    expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(1);
+  });
+
+  it("never turns a malformed reply into an empty list", async () => {
+    const replies = [{ success: 1 }, { success: 1, data: null }, { success: 1, data: { not: "a list" } }];
+    for (const reply of replies) {
+      const { fn } = mockFetch((url) => (url.endsWith("/parent/login") ? loginResponse() : json(reply)));
+      const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+      await expect(client.timetable(1, "2026-10-21")).rejects.toThrow(/unexpected response/);
+    }
+  });
+
+  it("accepts an empty list and an empty attendance range", async () => {
+    const { fn } = mockFetch((url) =>
+      url.endsWith("/parent/login") ? loginResponse() : json({ success: 1, data: [], meta: {} }),
+    );
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    expect((await client.timetable(1, "2026-10-28")).lessons).toEqual([]);
+    expect((await client.attendance(1, { from: "a", to: "b" })).days).toEqual({});
+  });
+
+  it("treats HTTP 401 as a refusal and logs in again when the session is dead", async () => {
+    let first = true;
+    const { fn, calls } = mockFetch((url) => {
+      if (url.endsWith("/parent/login")) return loginResponse();
+      if (url.endsWith("/ping")) return new Response("", { status: 401 });
+      if (first) {
+        first = false;
+        return new Response("", { status: 401 });
+      }
+      return json({ success: 1, data: [{ id: 7 }], meta: {} });
+    });
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    expect(await client.pupils()).toEqual([{ id: 7 }]);
+    expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(2);
+  });
+
   it("reuses a cached session without logging in", async () => {
     const store = memorySessionStore();
     store.save({ cookie: "c=1", sessionId: "cached", refreshedAt: 1_000 });

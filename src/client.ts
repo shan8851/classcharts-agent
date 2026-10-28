@@ -42,6 +42,7 @@ export class ClassChartsClient {
   private readonly opts: ClientOptions;
   private readonly store: SessionStore;
   private auth: Promise<void> | undefined; // shared so parallel requests log in once
+  private logins = 0; // lets a rejected request tell whether a fresh login happened
 
   constructor(opts: ClientOptions) {
     if (!opts.email || !opts.password) {
@@ -105,10 +106,11 @@ export class ClassChartsClient {
       throw new ClassChartsAuthError("Login response not understood; ClassCharts may have changed its login flow.");
     }
     this.refreshedAt = this.now();
+    this.logins++;
     this.persist();
   }
 
-  private async raw<T, M>(path: string, init: RequestInit = {}): Promise<ApiResponse<T, M>> {
+  private async raw<T, M>(path: string, init: RequestInit = {}): Promise<Reply<T, M>> {
     const res = await this.fetch(`${API}${path}`, {
       ...init,
       headers: {
@@ -118,18 +120,27 @@ export class ClassChartsClient {
       },
     });
     const text = await res.text();
+    let body: ApiResponse<T, M> | undefined;
     try {
-      return JSON.parse(text);
+      body = JSON.parse(text);
     } catch {
+      // handled below
+    }
+    // 401/403 or success: 0 = ClassCharts refused this request (maybe the session, maybe not).
+    const refused = res.status === 401 || res.status === 403 || body?.success === 0;
+    if (!refused && !res.ok) throw new Error(`ClassCharts returned HTTP ${res.status} for ${path}. Try again later.`);
+    if (!refused && (!body || typeof body !== "object")) {
       throw new Error(`ClassCharts returned HTTP ${res.status} without JSON for ${path}.`);
     }
+    return { refused, error: body?.error, body: body as ApiResponse<T, M> };
   }
 
   private async refresh(): Promise<void> {
     const body = new URLSearchParams({ include_data: "true" });
     const ping = await this.raw<unknown, { session_id?: string }>("/ping", { method: "POST", body });
-    if (ping.success === 0 || !ping.meta?.session_id) throw new ClassChartsAuthError("Session expired.");
-    this.sessionId = ping.meta.session_id;
+    const id = ping.body?.meta?.session_id;
+    if (ping.refused || !id) throw new ClassChartsAuthError("Session expired.");
+    this.sessionId = id;
     this.refreshedAt = this.now();
     this.persist();
   }
@@ -142,18 +153,31 @@ export class ClassChartsClient {
       await this.once(() => this.refresh().catch(() => this.login()));
     }
     const used = this.sessionId;
+    const logins = this.logins;
     let res = await this.raw<T, M>(path);
-    if (res.success === 0) {
-      // Session rejected: log in once (unless another request already did), then retry.
-      if (this.sessionId === used) await this.once(() => this.login());
+    if (res.refused) {
+      if (this.sessionId === used) {
+        // Is it the session? Ping first (cheap, no password). Only a dead session earns a login,
+        // so refusals for other reasons don't feed ClassCharts' login rate limit.
+        await this.once(() => this.refresh().catch(() => this.login()));
+        if (this.logins === logins) throw refusedError(path, res.error); // session was fine
+      }
+      // A new session (ours or another request's): retry once with it.
       res = await this.raw<T, M>(path);
-      if (res.success === 0) throw new Error(`ClassCharts error for ${path}: ${res.error ?? "unknown"}`);
+      if (res.refused) throw refusedError(path, res.error);
     }
-    return res;
+    return res.body;
+  }
+
+  /** Fetch a list endpoint. A missing or malformed list is an error, never "nothing there". */
+  private async list<T, M = unknown>(path: string): Promise<{ data: T[]; meta: M }> {
+    const res = await this.request<T[], M>(path);
+    if (!Array.isArray(res.data)) throw unexpected(path);
+    return { data: res.data, meta: res.meta };
   }
 
   async pupils(): Promise<RawPupil[]> {
-    return (await this.request<RawPupil[]>("/pupils")).data ?? [];
+    return (await this.list<RawPupil>("/pupils")).data;
   }
 
   async homeworks(
@@ -161,20 +185,20 @@ export class ClassChartsClient {
     opts: { from: string; to: string; by?: "due_date" | "issue_date" },
   ): Promise<RawHomework[]> {
     const q = new URLSearchParams({ display_date: opts.by ?? "due_date", from: opts.from, to: opts.to });
-    return (await this.request<RawHomework[]>(`/homeworks/${pupilId}?${q}`)).data ?? [];
+    return (await this.list<RawHomework>(`/homeworks/${pupilId}?${q}`)).data;
   }
 
   async timetable(pupilId: number, date: string): Promise<{ lessons: RawLesson[]; meta: TimetableMeta }> {
-    const res = await this.request<RawLesson[], TimetableMeta>(`/timetable/${pupilId}?date=${date}`);
-    return { lessons: res.data ?? [], meta: res.meta };
+    const res = await this.list<RawLesson, TimetableMeta>(`/timetable/${pupilId}?date=${date}`);
+    return { lessons: res.data, meta: res.meta };
   }
 
   async announcements(pupilId: number): Promise<RawAnnouncement[]> {
-    return (await this.request<RawAnnouncement[]>(`/announcements/${pupilId}`)).data ?? [];
+    return (await this.list<RawAnnouncement>(`/announcements/${pupilId}`)).data;
   }
 
   async detentions(pupilId: number): Promise<RawDetention[]> {
-    return (await this.request<RawDetention[]>(`/detentions/${pupilId}`)).data ?? [];
+    return (await this.list<RawDetention>(`/detentions/${pupilId}`)).data;
   }
 
   /** Behaviour points, newest first, following ClassCharts' `last_id` pagination. */
@@ -186,7 +210,7 @@ export class ClassChartsClient {
       const q = new URLSearchParams(range);
       if (lastId) q.set("last_id", lastId);
       // meta.last_id is unreliable (false on page one); page by the last item's id until empty.
-      const batch = (await this.request<RawActivityPoint[]>(`/activity/${pupilId}?${q}`)).data ?? [];
+      const batch = (await this.list<RawActivityPoint>(`/activity/${pupilId}?${q}`)).data;
       if (batch.length === 0) break;
       all.push(...batch);
       lastId = String(batch[batch.length - 1].id);
@@ -202,6 +226,22 @@ export class ClassChartsClient {
     const res = await this.request<Record<string, Record<string, RawAttendanceSession>>, AttendanceMeta>(
       `/attendance/${pupilId}?${q}`,
     );
-    return { days: res.data ?? {}, meta: res.meta };
+    const days = res.data;
+    // An empty range comes back as [] (PHP's empty array); anything else must be an object.
+    if (Array.isArray(days) && days.length === 0) return { days: {}, meta: res.meta };
+    if (!days || typeof days !== "object" || Array.isArray(days)) throw unexpected(`/attendance/${pupilId}`);
+    return { days, meta: res.meta };
   }
 }
+
+interface Reply<T, M> {
+  refused: boolean;
+  error?: string;
+  body: ApiResponse<T, M>;
+}
+
+const refusedError = (path: string, error?: string) =>
+  new Error(`ClassCharts refused ${path.split("?")[0]}: ${error || "no reason given"}.`);
+
+const unexpected = (path: string) =>
+  new Error(`ClassCharts sent an unexpected response for ${path.split("?")[0]}; it may have changed. Not treating it as empty.`);
