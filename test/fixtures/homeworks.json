@@ -1,0 +1,105 @@
+{
+  "success": 1,
+  "data": [
+    {
+      "lesson": "9X/Ge",
+      "subject": "Geography",
+      "teacher": "Mx T Teacher1",
+      "homework_type": "Homework",
+      "id": 5000,
+      "title": "Educake",
+      "meta_title": "",
+      "description": "\n\n\n\n\n\n<p><u><b>Educake</b></u> homework is set every fortnight for all\n<u><b>geography</b></u> students. It is designed to support\nstudents recall of important information and give them an\nopportunity to practice questions.&nbsp;</p>\n<p>The quiz is designed to be <b><u>repeated</u></b> especially if\nthey have struggled that week.&nbsp;</p>\n<p>There is also the ability for students to do <b><u>extra\nwork</u></b> if they are revising for tests etc.</p>\n<p>There will be <u><b>prizes</b></u> throughout the year for our\nbest educakers both most done and highest percentages.&nbsp;</p>\n<p>Students in years 8-11 should have their login from last year,\nif they need the password resetting please contact their geography\nteacher.&nbsp;</p>\n<p>Students in year 7 have been given a login and have created a\npassword in a computer room.&nbsp;</p>\n<p><b>The link is attached below</b></p>\n<p><b>ANY ISSUES PLEASE SPEAK TO MR DAVIES OR your teacher</b></p>\n<p><br></p>\n\n",
+      "issue_date": "2026-10-13",
+      "due_date": "2026-10-27",
+      "completion_time_unit": "minutes",
+      "completion_time_value": "20",
+      "publish_time": "00:00:00",
+      "status": {
+        "id": 9000,
+        "state": null,
+        "mark": null,
+        "mark_relative": 0,
+        "ticked": "yes",
+        "allow_attachments": false,
+        "allow_marking_completed": false,
+        "first_seen_date": "2026-10-13T09:16:36+00:00",
+        "last_seen_date": "2026-10-13T09:16:36+00:00",
+        "attachments": [],
+        "has_feedback": false
+      },
+      "validated_links": [
+        {
+          "link": "https://my.educake.co.uk/student-login",
+          "validated_link": "https://www.classcharts.com/redirect?url=REDACTED"
+        }
+      ],
+      "validated_attachments": []
+    },
+    {
+      "lesson": "9X/Ar",
+      "subject": "Art and Design / Art",
+      "teacher": "Mx T Teacher2",
+      "homework_type": "Homework",
+      "id": 5001,
+      "title": "Literacy- Spellings and definitions",
+      "meta_title": "",
+      "description": "\n\n\n\n\n\nSee the key words and definitions to help you write and talk about\nyour work like an Artist. Please learn them. you will have a quick\ntest at the start of the next lesson. Thanks\n\n",
+      "issue_date": "2026-10-14",
+      "due_date": "2026-11-04",
+      "completion_time_unit": "minutes",
+      "completion_time_value": "15",
+      "publish_time": "00:00:00",
+      "status": {
+        "id": 9001,
+        "state": null,
+        "mark": null,
+        "mark_relative": 0,
+        "ticked": "no",
+        "allow_attachments": false,
+        "allow_marking_completed": false,
+        "first_seen_date": "2026-10-14T14:31:57+00:00",
+        "last_seen_date": "2026-10-14T14:31:57+00:00",
+        "attachments": [],
+        "has_feedback": false
+      },
+      "validated_links": [],
+      "validated_attachments": [
+        {
+          "id": 1,
+          "filename": "literacyhomework2forpupils.docx",
+          "file": "https://attachments.example.invalid/homework.docx?Signature=REDACTED",
+          "validated_file": "https://www.classcharts.com/redirect?url=REDACTED",
+          "scan_status": "pass",
+          "scan_status_message": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "start_date": "2026-10-21",
+    "end_date": "2026-11-11",
+    "display_type": "due_date",
+    "max_files_allowed": 5,
+    "allowed_file_types": [
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "pptx",
+      "pdf",
+      "rtf",
+      "txt",
+      "jpg",
+      "jpeg",
+      "png",
+      "m4a",
+      "mp4"
+    ],
+    "this_week_due_count": 1,
+    "this_week_outstanding_count": 0,
+    "this_week_completed_count": 1,
+    "allow_attachments": false,
+    "display_marks": false
+  }
+}

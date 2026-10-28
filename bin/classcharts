@@ -1,0 +1,4 @@
+#!/bin/sh
+# Thin launcher so agents can call `classcharts …` from anywhere.
+DIR="$(cd "$(dirname "$(realpath "$0")")/.." && pwd)"
+exec node "$DIR/src/cli.ts" "$@"

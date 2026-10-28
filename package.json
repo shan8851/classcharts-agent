@@ -1,0 +1,42 @@
+{
+  "name": "classcharts-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only ClassCharts CLI for AI agents: homework and timetable for a parent account.",
+  "license": "MIT",
+  "author": "Asam Shan",
+  "homepage": "https://github.com/shan8851/classcharts-agent#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shan8851/classcharts-agent.git"
+  },
+  "bugs": "https://github.com/shan8851/classcharts-agent/issues",
+  "keywords": [
+    "classcharts",
+    "school",
+    "homework",
+    "timetable",
+    "cli",
+    "agent",
+    "skill"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "bin": {
+    "classcharts": "bin/classcharts"
+  },
+  "scripts": {
+    "cli": "node src/cli.ts",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "packageManager": "pnpm@12.14.0"
+}

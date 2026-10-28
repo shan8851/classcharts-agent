@@ -1,0 +1,161 @@
+{
+  "success": 1,
+  "data": [
+    {
+      "teacher_name": "Mx T Teacher3",
+      "lesson_id": 100,
+      "lesson_name": "9X/0",
+      "subject_name": "Personal Social and Health Education (PSHE)",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 08:30:00 - 08:50:00 - 2",
+      "period_number": "30",
+      "room_name": "EXAMPLE SCHOOL: 011 ICT",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T08:30:00+01:00",
+      "end_time": "2026-10-21T08:50:00+01:00",
+      "key": 200,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    },
+    {
+      "teacher_name": "Mx T Teacher4",
+      "lesson_id": 101,
+      "lesson_name": "9X/1",
+      "subject_name": "Science",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 08:50:00 - 09:50:00 - 2",
+      "period_number": "50",
+      "room_name": "EXAMPLE SCHOOL: 119 Sci",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T08:50:00+01:00",
+      "end_time": "2026-10-21T09:50:00+01:00",
+      "key": 201,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    },
+    {
+      "teacher_name": "Mx T Teacher5",
+      "lesson_id": 102,
+      "lesson_name": "9X/2",
+      "subject_name": "Mathematics",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 09:50:00 - 10:50:00 - 2",
+      "period_number": "50",
+      "room_name": "EXAMPLE SCHOOL: 206 Maths",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T09:50:00+01:00",
+      "end_time": "2026-10-21T10:50:00+01:00",
+      "key": 202,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    },
+    {
+      "teacher_name": "Mx T Teacher6",
+      "lesson_id": 103,
+      "lesson_name": "9X/3",
+      "subject_name": "English",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 11:10:00 - 12:10:00 - 2",
+      "period_number": "10",
+      "room_name": "EXAMPLE SCHOOL: 115 English",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T11:10:00+01:00",
+      "end_time": "2026-10-21T12:10:00+01:00",
+      "key": 203,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    },
+    {
+      "teacher_name": "Mx T Teacher7",
+      "lesson_id": 104,
+      "lesson_name": "9X/4",
+      "subject_name": "Physical Education / Sports",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 12:10:00 - 13:10:00 - 2",
+      "period_number": "10",
+      "room_name": "1: 005G",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T12:10:00+01:00",
+      "end_time": "2026-10-21T13:10:00+01:00",
+      "key": 204,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    },
+    {
+      "teacher_name": "Mx T Teacher8",
+      "lesson_id": 105,
+      "lesson_name": "9X/5",
+      "subject_name": "History",
+      "is_alternative_lesson": false,
+      "period_name": "wednesday - 13:45:00 - 14:45:00 - 2",
+      "period_number": "45",
+      "room_name": "EXAMPLE SCHOOL: 108 History",
+      "date": "2026-10-21",
+      "start_time": "2026-10-21T13:45:00+01:00",
+      "end_time": "2026-10-21T14:45:00+01:00",
+      "key": 205,
+      "note_abstract": "",
+      "note": "",
+      "pupil_note_abstract": "",
+      "pupil_note": "",
+      "pupil_note_raw": "",
+      "teacher_id": null
+    }
+  ],
+  "meta": {
+    "dates": [
+      "2026-10-21"
+    ],
+    "timetable_dates": [
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "periods": [
+      {
+        "number": "30",
+        "start_time": "08:30:00",
+        "end_time": "08:50:00"
+      },
+      {
+        "number": "50",
+        "start_time": "09:50:00",
+        "end_time": "10:50:00"
+      },
+      {
+        "number": "10",
+        "start_time": "12:10:00",
+        "end_time": "13:10:00"
+      },
+      {
+        "number": "45",
+        "start_time": "13:45:00",
+        "end_time": "14:45:00"
+      }
+    ],
+    "start_time": "2026-10-21T00:00:00+00:00",
+    "end_time": "2026-10-21T23:59:59+00:00"
+  }
+}
