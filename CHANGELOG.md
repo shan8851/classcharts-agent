@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 (2026-10-28)
+
+From dogfooding with a real agent:
+
+- **Errors are never "nothing due".** HTTP errors and missing or malformed data are now errors, instead of quietly becoming an empty list (which could read as "no homework" or "no school").
+- **Fewer logins.** When ClassCharts refuses a request, the CLI pings first and only logs in again if the session is actually dead. Refusals for other reasons are reported without spending a login against the rate limit. HTTP 401/403 count as refusals.
+- **No guessing between children.** With more than one child linked, choose one with `--pupil` or `CLASSCHARTS_PUPIL`; one child works as before.
+- README says plainly that the saved login is plain text protected by file permissions.
+
 ## 0.3.0 (2026-10-28)
 
 - **On npm** as `@shan8851/classcharts-agent`: `npm install -g @shan8851/classcharts-agent`, then `classcharts`. Needs Node 22.18+ (24 recommended); clones and npm now need the same version.

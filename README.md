@@ -108,7 +108,7 @@ Either way, check it with `classcharts pupils`. Keep the password out of chat lo
 
 `DATE` can be `YYYY-MM-DD`, `today`, `tomorrow`, `yesterday`, `next`, or a weekday (`mon`, `friday`: the next one, today included). `day next` means the next day with lessons, skipping weekends and holidays. `week next` means the following week.
 
-Options: `--pupil <name|id>` when more than one child is linked, `--full` for complete homework text, links and attachments, and `--json` for structured output.
+Options: `--pupil <name|id>` (required when more than one child is linked; it won't guess), `--full` for complete homework text, links and attachments, and `--json` for structured output.
 
 Text output is coloured in a terminal and plain when piped or run by an agent (`NO_COLOR` is respected). Exit codes: `0` success, `1` bad input or API error, `2` login problem (bad credentials, or ClassCharts' temporary block).
 
@@ -117,7 +117,7 @@ Text output is coloured in a terminal and plain when piped or run by an agent (`
 | Variable | |
 |---|---|
 | `CLASSCHARTS_EMAIL`, `CLASSCHARTS_PASSWORD` | Parent account login (required) |
-| `CLASSCHARTS_PUPIL` | Default child, by first name or id |
+| `CLASSCHARTS_PUPIL` | Default child, by first name or id (needed if several are linked; use the id for unattended agents) |
 | `CLASSCHARTS_ENV_FILE` | Use a specific `.env` file |
 | `CLASSCHARTS_SESSION_FILE` | Session cache location (default: `~/.cache/classcharts-agent/session.json`) |
 
@@ -125,7 +125,7 @@ The login is looked for in this order: environment variables, `CLASSCHARTS_ENV_F
 
 ## Privacy
 
-Credentials stay on your machine, in a file only you can read. Nothing is sent anywhere except `www.classcharts.com`. Besides the login, the only thing stored is the session token in `~/.cache/classcharts-agent/`. To sign out, delete both.
+Credentials stay on your machine, in a file only you can read. They're stored as **plain text** protected by file permissions, not in an encrypted keychain: anything running as your user can read them. Nothing is sent anywhere except `www.classcharts.com`. Besides the login, the only thing stored is the session token in `~/.cache/classcharts-agent/`. To sign out, delete both.
 
 ## Roadmap
 

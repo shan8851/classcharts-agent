@@ -192,8 +192,13 @@ describe("pickPupil", () => {
     { id: 3, name: "Ali Three", first_name: "Ali" },
   ] as RawPupil[];
 
+  it("never guesses when several children are linked", () => {
+    expect(() => pickPupil(kids)).toThrow(/More than one child is linked.*--pupil/);
+    expect(() => pickPupil(kids, " ")).toThrow(/More than one child/);
+    expect(pickPupil([kids[2]]).id).toBe(3); // one child: no need to choose
+  });
+
   it("matches by id, first name or full name", () => {
-    expect(pickPupil(kids).id).toBe(1);
     expect(pickPupil(kids, "2").id).toBe(2);
     expect(pickPupil(kids, "ali").id).toBe(3);
     expect(pickPupil(kids, "Sam Two").id).toBe(2);
