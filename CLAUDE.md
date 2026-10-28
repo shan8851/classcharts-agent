@@ -1,8 +1,10 @@
 # classcharts-agent
 
-Read-only ClassCharts CLI + agent skill (homework, timetable) for a parent account. Public repo (MIT). First user: a family WhatsApp bot (Hermes), so keep it generic.
+Read-only ClassCharts CLI + agent skill (homework, timetable, announcements, behaviour, detentions, attendance, digest) for a parent account. Public repo (MIT). First user: a family WhatsApp bot (Hermes), so keep it generic.
 
 ## Rules
+
+- **Branches and PRs.** Work on a branch, open a PR, let CI pass. Releases are tagged `vX.Y.Z` with notes from `CHANGELOG.md`.
 
 - **Read-only.** Don't add write endpoints (tick homework, behaviour, password, messages) without Shan asking.
 - **Nothing personal in the repo.** No child names, school, teachers, ids or raw responses. `.env` and `out/` are gitignored. Fixtures in `test/fixtures/` are anonymised; check with a grep before committing new ones.
@@ -14,7 +16,8 @@ Read-only ClassCharts CLI + agent skill (homework, timetable) for a parent accou
 
 - `src/client.ts`: login, session refresh/relogin, `pupils`, `homeworks`, `timetable`
 - `src/session.ts`: on-disk session cache. ClassCharts rate-limits logins ("Too many attempts", ~5 min), so never log in per call
-- `src/format.ts`: raw → normalised shapes, and text rendering
+- `src/format.ts`: homework/timetable shapes, text rendering, styles
+- `src/sections.ts`: announcements, behaviour, detentions, attendance
 - `src/dates.ts`: date words, school weeks, timezone
 - `src/cli.ts`: commands; `bin/classcharts` is the launcher
 - `SKILL.md`: what the agent reads
@@ -23,7 +26,7 @@ API reference: https://classchartsapi.github.io/api-docs/ (unofficial; some fiel
 
 ## Next
 
-- Map the rest of the parent API by clicking through ClassCharts in Chrome with network capture, then decide what's worth adding (announcements, detentions, attendance…).
+- Parent API map: `docs/API-MAP.md`. Keep it updated when adding endpoints.
 - npm package later (see README roadmap). Node does not strip types inside node_modules, so npm needs a small build step to `dist/`.
 - MCP server: undecided.
 

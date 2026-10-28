@@ -1,0 +1,54 @@
+{
+  "success": 1,
+  "data": [
+    {
+      "id": 1,
+      "attended": "pending",
+      "date": "2026-11-03T00:00:00+00:00",
+      "length": 30,
+      "location": "Room 12",
+      "notes": "",
+      "time": "15:00:00",
+      "lesson": {
+        "id": 1,
+        "name": "9X/Ma",
+        "subject": {
+          "id": 1,
+          "name": "Mathematics"
+        }
+      },
+      "lesson_pupil_behaviour": {
+        "reason": "Homework not done"
+      },
+      "teacher": {
+        "id": 1,
+        "first_name": "Tess",
+        "last_name": "Teacher",
+        "title": "Ms"
+      },
+      "detention_type": {
+        "name": "After school"
+      }
+    },
+    {
+      "id": 2,
+      "attended": "yes",
+      "date": "2026-10-14T00:00:00+00:00",
+      "length": 20,
+      "location": "Hall",
+      "notes": "",
+      "time": "12:40:00",
+      "lesson": null,
+      "lesson_pupil_behaviour": {
+        "reason": "Late"
+      },
+      "teacher": null,
+      "detention_type": {
+        "name": "Lunch"
+      }
+    }
+  ],
+  "meta": {
+    "detention_alias_plural": "Detentions"
+  }
+}

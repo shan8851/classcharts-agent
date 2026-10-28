@@ -52,3 +52,9 @@ export function resolveDate(input: string | undefined, today: string): string {
   if (idx >= 0) return addDays(today, (idx - weekday(today) + 7) % 7);
   throw new Error(`Can't read date "${input}". Use YYYY-MM-DD, today, tomorrow, next, or a weekday.`);
 }
+
+/** 1 September of the current UK school year. */
+export function schoolYearStart(today: string): string {
+  const [y, m] = today.split("-").map(Number);
+  return `${m >= 9 ? y : y - 1}-09-01`;
+}

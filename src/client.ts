@@ -3,7 +3,18 @@
 // Deliberately exposes no write endpoints (no password change, behaviour, ticking).
 
 import { memorySessionStore, type SessionStore } from "./session.ts";
-import type { ApiResponse, RawHomework, RawLesson, RawPupil, TimetableMeta } from "./types.ts";
+import type {
+  ApiResponse,
+  AttendanceMeta,
+  RawActivityPoint,
+  RawAnnouncement,
+  RawAttendanceSession,
+  RawDetention,
+  RawHomework,
+  RawLesson,
+  RawPupil,
+  TimetableMeta,
+} from "./types.ts";
 
 const BASE = "https://www.classcharts.com";
 const API = `${BASE}/apiv2parent`;
@@ -148,5 +159,40 @@ export class ClassChartsClient {
   async timetable(pupilId: number, date: string): Promise<{ lessons: RawLesson[]; meta: TimetableMeta }> {
     const res = await this.request<RawLesson[], TimetableMeta>(`/timetable/${pupilId}?date=${date}`);
     return { lessons: res.data ?? [], meta: res.meta };
+  }
+
+  async announcements(pupilId: number): Promise<RawAnnouncement[]> {
+    return (await this.request<RawAnnouncement[]>(`/announcements/${pupilId}`)).data ?? [];
+  }
+
+  async detentions(pupilId: number): Promise<RawDetention[]> {
+    return (await this.request<RawDetention[]>(`/detentions/${pupilId}`)).data ?? [];
+  }
+
+  /** Behaviour points, newest first, following ClassCharts' `last_id` pagination. */
+  async activity(pupilId: number, range: { from: string; to: string }, maxPages = 20): Promise<RawActivityPoint[]> {
+    const all: RawActivityPoint[] = [];
+    let lastId: string | undefined;
+    for (let page = 0; page < maxPages; page++) {
+      const q = new URLSearchParams(range);
+      if (lastId) q.set("last_id", lastId);
+      // meta.last_id is unreliable (false on page one); page by the last item's id until empty.
+      const batch = (await this.request<RawActivityPoint[]>(`/activity/${pupilId}?${q}`)).data ?? [];
+      if (batch.length === 0) break;
+      all.push(...batch);
+      lastId = String(batch[batch.length - 1].id);
+    }
+    return all;
+  }
+
+  async attendance(
+    pupilId: number,
+    range: { from: string; to: string },
+  ): Promise<{ days: Record<string, Record<string, RawAttendanceSession>>; meta: AttendanceMeta }> {
+    const q = new URLSearchParams(range);
+    const res = await this.request<Record<string, Record<string, RawAttendanceSession>>, AttendanceMeta>(
+      `/attendance/${pupilId}?${q}`,
+    );
+    return { days: res.data ?? {}, meta: res.meta };
   }
 }

@@ -1,0 +1,132 @@
+{
+  "success": 1,
+  "data": [
+    {
+      "id": 100,
+      "type": "behaviour",
+      "polarity": "positive",
+      "reason": "Commendation",
+      "score": 1,
+      "timestamp": "2026-10-21 11:05:14",
+      "timestamp_custom_time": null,
+      "style": {
+        "border_color": null,
+        "custom_class": null
+      },
+      "pupil_name": "Alex Example",
+      "lesson_name": "9X/0",
+      "teacher_name": "Mx T Teacher1",
+      "room_name": null,
+      "note": null,
+      "_can_delete": false,
+      "badges": "",
+      "detention_date": null,
+      "detention_time": null,
+      "detention_location": null,
+      "detention_type": null
+    },
+    {
+      "id": 101,
+      "type": "behaviour",
+      "polarity": "positive",
+      "reason": "Commendation",
+      "score": 1,
+      "timestamp": "2026-10-20 13:13:44",
+      "timestamp_custom_time": null,
+      "style": {
+        "border_color": null,
+        "custom_class": null
+      },
+      "pupil_name": "Alex Example",
+      "lesson_name": "9X/1",
+      "teacher_name": "Mx T Teacher2",
+      "room_name": null,
+      "note": null,
+      "_can_delete": false,
+      "badges": "",
+      "detention_date": null,
+      "detention_time": null,
+      "detention_location": null,
+      "detention_type": null
+    },
+    {
+      "id": 102,
+      "type": "behaviour",
+      "polarity": "positive",
+      "reason": "Commendation",
+      "score": 1,
+      "timestamp": "2026-10-20 13:13:30",
+      "timestamp_custom_time": null,
+      "style": {
+        "border_color": null,
+        "custom_class": null
+      },
+      "pupil_name": "Alex Example",
+      "lesson_name": "9X/2",
+      "teacher_name": "Mx T Teacher3",
+      "room_name": null,
+      "note": null,
+      "_can_delete": false,
+      "badges": "",
+      "detention_date": null,
+      "detention_time": null,
+      "detention_location": null,
+      "detention_type": null
+    },
+    {
+      "id": 103,
+      "type": "behaviour",
+      "polarity": "positive",
+      "reason": "Being Responsible",
+      "score": 2,
+      "timestamp": "2026-10-20 09:01:49",
+      "timestamp_custom_time": null,
+      "style": {
+        "border_color": null,
+        "custom_class": null
+      },
+      "pupil_name": "Alex Example",
+      "lesson_name": "9X/3",
+      "teacher_name": "Mx T Teacher4",
+      "room_name": null,
+      "note": null,
+      "_can_delete": false,
+      "badges": "",
+      "detention_date": null,
+      "detention_time": null,
+      "detention_location": null,
+      "detention_type": null
+    },
+    {
+      "id": 200,
+      "type": "behaviour",
+      "polarity": "negative",
+      "reason": "S1",
+      "score": -1,
+      "timestamp": "2026-10-19 10:00:00",
+      "timestamp_custom_time": null,
+      "style": {
+        "border_color": null,
+        "custom_class": null
+      },
+      "pupil_name": "Alex Example",
+      "lesson_name": "9X/0",
+      "teacher_name": "Mx T Teacher1",
+      "room_name": null,
+      "note": "<p>Talking in class</p>",
+      "_can_delete": false,
+      "badges": "",
+      "detention_date": null,
+      "detention_time": null,
+      "detention_location": null,
+      "detention_type": null
+    }
+  ],
+  "meta": {
+    "start_date": "2026-08-31T23:00:00+00:00",
+    "end_date": "2026-10-28T23:59:59+00:00",
+    "last_id": false,
+    "step_size": "week",
+    "detention_alias_uc": "Detention"
+  }
+}
