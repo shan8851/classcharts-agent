@@ -135,7 +135,14 @@ Credentials stay on your machine, in a file only you can read. Nothing is sent a
 
 What the parent API offers, and what's deliberately left out (messages, anything that writes), is in [docs/API-MAP.md](docs/API-MAP.md). Releases and changes: [CHANGELOG.md](CHANGELOG.md).
 
-Ideas and issues are welcome.
+
+## Feedback and contributions
+
+Issues and PRs are welcome. The most useful thing you can report: **something that looks wrong for your school.** Every school sets up ClassCharts a bit differently (period names, rooms, behaviour reasons), and detentions are only tested against made-up data so far. Open an [issue](https://github.com/shan8851/classcharts-agent/issues) saying what you ran and what looked off.
+
+Please never paste real names, logins or raw responses into an issue. Describe the shape, or swap in made-up values.
+
+For a PR: keep it read-only (no endpoints that change anything in ClassCharts), run `pnpm check`, and add a test. Fixtures in `test/fixtures/` must be anonymised.
 
 ## Development
 
