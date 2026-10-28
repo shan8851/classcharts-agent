@@ -5,11 +5,13 @@ description: Look up a child's school life from ClassCharts (UK schools) via a p
 
 # ClassCharts (school info for a parent)
 
-Read-only CLI for the ClassCharts parent account. Run it from this folder:
+Read-only CLI for a ClassCharts parent account:
 
 ```bash
-./bin/classcharts <command> [date] [options]
+classcharts <command> [date] [options]
 ```
+
+If `classcharts` isn't on the PATH but this skill folder is a clone of the repo, use `./bin/classcharts` from this folder.
 
 ## Pick the command
 
@@ -59,4 +61,6 @@ If more than one child is linked, pass `--pupil <first name or id>`.
 
 ## Setup (once)
 
-Needs Node 23.6+ (runs TypeScript directly, no build). Copy `.env.example` to `.env` and fill in the parent login. See README.md.
+- Install: `npm install -g @shan8851/classcharts-agent` (Node 20.12+), or clone the repo.
+- Sign in: **a person** runs `classcharts setup` in a terminal. Don't ask for the password in chat and don't try to run `setup` yourself; it refuses non-interactive input.
+- Check: `classcharts pupils`. "No ClassCharts login found" (exit 2) means setup hasn't been run.

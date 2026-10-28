@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // classcharts: read-only ClassCharts CLI for agents (parent accounts).
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs, styleText } from "node:util";
@@ -10,6 +10,7 @@ import { addDays, nextSchoolDay, resolveDate, schoolWeek, schoolYearStart, today
 import {
   type Day,
   heading,
+  plain,
   type RenderOptions,
   renderDay,
   renderHomework,
@@ -32,6 +33,7 @@ import {
   toPoint,
 } from "./sections.ts";
 import { fileSessionStore } from "./session.ts";
+import { configEnvFile, setup } from "./setup.ts";
 import type { RawPupil } from "./types.ts";
 
 const HELP = `classcharts: read-only ClassCharts for a parent account
@@ -50,6 +52,8 @@ Commands:
   detentions        Upcoming and past detentions
   attendance        Attendance % and any absences/lates (default: this school year)
   pupils            Children linked to the account
+  setup             Sign in once (run by a person; saves the login privately)
+  skill             Print SKILL.md, the instructions for AI agents
 
 DATE: YYYY-MM-DD, today, tomorrow, yesterday, next, or a weekday (mon, friday…)
       day/timetable next = next day with lessons (skips weekends and holidays)
@@ -63,11 +67,13 @@ Options:
   --full            Full text, links and attachments
   --json            JSON output instead of text
                     (text is coloured on a terminal, plain when piped; NO_COLOR respected)
+  -v, --version
   -h, --help
 
-Env: CLASSCHARTS_EMAIL, CLASSCHARTS_PASSWORD, CLASSCHARTS_PUPIL (optional).
-A .env file next to this repo's package.json is loaded automatically.
-The login session is cached in ~/.cache/classcharts-agent/ (override: CLASSCHARTS_SESSION_FILE),
+Login: run \`classcharts setup\` once, or set CLASSCHARTS_EMAIL and CLASSCHARTS_PASSWORD
+(optional CLASSCHARTS_PUPIL). Looked for in: the environment, CLASSCHARTS_ENV_FILE,
+a .env in a cloned repo, then ~/.config/classcharts-agent/.env.
+The session is cached in ~/.cache/classcharts-agent/ (override: CLASSCHARTS_SESSION_FILE),
 because ClassCharts blocks repeated logins for a few minutes.`;
 
 const COMMANDS = [
@@ -81,15 +87,19 @@ const COMMANDS = [
   "detentions",
   "attendance",
   "pupils",
+  "setup",
+  "skill",
 ];
 const isNext = (s?: string) => s === "next" || s === "next-school-day";
 
+/** Package root: works from src/ (clone) and dist/ (npm). */
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
 function loadEnv() {
-  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-  const file = process.env.CLASSCHARTS_ENV_FILE ?? join(root, ".env");
-  if (existsSync(file) && !(process.env.CLASSCHARTS_EMAIL && process.env.CLASSCHARTS_PASSWORD)) {
-    process.loadEnvFile(file);
-  }
+  if (process.env.CLASSCHARTS_EMAIL && process.env.CLASSCHARTS_PASSWORD) return;
+  const candidates = [process.env.CLASSCHARTS_ENV_FILE, join(ROOT, ".env"), configEnvFile()];
+  const file = candidates.find((f): f is string => !!f && existsSync(f));
+  if (file) process.loadEnvFile(file);
 }
 
 function pickPupil(pupils: RawPupil[], wanted?: string): RawPupil {
@@ -147,18 +157,30 @@ async function main(argv: string[]): Promise<string> {
       full: { type: "boolean" },
       json: { type: "boolean" },
       help: { type: "boolean", short: "h" },
+      version: { type: "boolean", short: "v" },
     },
   });
   const [command, dateArg] = positionals;
-  // styleText only colours when stdout is a colour-capable TTY, so agents get plain text.
-  const s: Style = (f, t) => styleText(f, t);
+  // Colour only on a colour-capable terminal (hasColors respects NO_COLOR/FORCE_COLOR).
+  // Checked here because Node 20's styleText doesn't check the stream itself.
+  const colour = !!process.stdout.isTTY && process.stdout.hasColors?.() === true;
+  const s: Style = colour ? (f, t) => styleText(f, t, { validateStream: false }) : plain;
   const render: RenderOptions = { full: values.full, style: s };
+  if (values.version) return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
   if (values.help || !command || command === "help") return HELP;
   // Fail on typos before touching the network (logins are rate-limited).
   if (!COMMANDS.includes(command)) throw new Error(`Unknown command "${command}".\n\n${HELP}`);
   for (const d of [dateArg, values.from, values.to]) if (d) resolveDate(d, todayIn("Europe/London"));
+  if (command === "skill") return readFileSync(join(ROOT, "SKILL.md"), "utf8").trimEnd();
+  if (command === "setup") return setup();
 
   loadEnv();
+  if (!process.env.CLASSCHARTS_EMAIL || !process.env.CLASSCHARTS_PASSWORD) {
+    throw new ClassChartsAuthError(
+      "No ClassCharts login found. A person needs to run `classcharts setup` once " +
+        "(or set CLASSCHARTS_EMAIL and CLASSCHARTS_PASSWORD).",
+    );
+  }
   const email = process.env.CLASSCHARTS_EMAIL ?? "";
   const client = new ClassChartsClient({
     email,

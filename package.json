@@ -1,7 +1,6 @@
 {
-  "name": "classcharts-agent",
-  "version": "0.2.0",
-  "private": true,
+  "name": "@shan8851/classcharts-agent",
+  "version": "0.3.0",
   "description": "Read-only ClassCharts CLI for AI agents: homework, timetable, announcements, behaviour, detentions and attendance for a parent account.",
   "license": "MIT",
   "author": "Asam Shan",
@@ -16,22 +15,34 @@
     "school",
     "homework",
     "timetable",
+    "parents",
     "cli",
-    "agent",
-    "skill"
+    "ai-agent",
+    "agents",
+    "agent-skills"
   ],
   "type": "module",
   "engines": {
-    "node": ">=23.6"
+    "node": ">=20.12"
   },
   "bin": {
-    "classcharts": "bin/classcharts"
+    "classcharts": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "SKILL.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "cli": "node src/cli.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "typecheck": "tsc",
     "test": "vitest run",
-    "check": "pnpm typecheck && pnpm test"
+    "check": "pnpm typecheck && pnpm test",
+    "prepublishOnly": "pnpm check && pnpm build"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

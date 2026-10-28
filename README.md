@@ -37,32 +37,51 @@ It's built for family assistants: a WhatsApp group bot, Hermes, Claude Code, any
 - **It doesn't trip the rate limit.** ClassCharts blocks logins for a few minutes after too many attempts. The session is cached between runs, so an agent calling the CLI all day doesn't keep logging in.
 - **Read-only by design.** There are no password changes, behaviour points, consent responses, messages or homework ticking, so it's safe to hand to an agent.
 - **Agent-shaped output.** You get compact text or clean JSON: HTML stripped, rooms tidied, two-week timetable rotation detected, holidays flagged, and `next` skips to the next day with lessons.
-- **No runtime dependencies and no build step.** Node runs the TypeScript directly.
+- **No runtime dependencies.** One small package; clones run the TypeScript directly.
 
-## Quick start
+## Install
 
-Needs Node **23.6+**.
+### From npm (recommended)
+
+Needs Node **20.12+**.
+
+```bash
+npm install -g @shan8851/classcharts-agent
+classcharts setup     # a person signs in once: the password is hidden, tested, then saved privately
+classcharts digest
+```
+
+`setup` saves the login to `~/.config/classcharts-agent/.env`, readable only by you. It has to be run by a person in a terminal, so an agent can't pipe a password through it.
+
+### From a clone
+
+Needs Node **23.6+** (it runs the TypeScript directly, with no build step).
 
 ```bash
 git clone https://github.com/shan8851/classcharts-agent.git
 cd classcharts-agent
-cp .env.example .env          # fill in the parent email and password
-./bin/classcharts pupils      # check it works
+./bin/classcharts setup      # or: cp .env.example .env and fill it in
+./bin/classcharts digest
 ```
 
-That's it: no `npm install` is needed to run it. To call it from anywhere, link it onto your PATH:
-
-```bash
-ln -s "$PWD/bin/classcharts" ~/.local/bin/classcharts
-```
+To call it from anywhere, link it onto your PATH: `ln -s "$PWD/bin/classcharts" ~/.local/bin/classcharts`.
 
 ## Give it to your agent
 
-Point your agent at this repo and say something like: *"Install the ClassCharts skill from github.com/shan8851/classcharts-agent, then ask me for the parent login."* It should:
+The CLI does the work; [SKILL.md](SKILL.md) tells the agent which command answers which question.
 
-1. Clone the repo into its skills folder, e.g. `git clone https://github.com/shan8851/classcharts-agent.git ~/.claude/skills/classcharts`. `SKILL.md` sits at the root, so the folder is the skill.
-2. Create `.env` from `.env.example`. Type the credentials in yourself rather than pasting them into a chat.
-3. Run `./bin/classcharts pupils` to confirm it works.
+**npm route.** Tell your agent: *"Install `@shan8851/classcharts-agent` from npm and add its skill."* Then:
+
+```bash
+npm install -g @shan8851/classcharts-agent
+mkdir -p ~/.claude/skills/classcharts && classcharts skill > ~/.claude/skills/classcharts/SKILL.md
+```
+
+Use your agent's skills folder in place of `~/.claude/skills/`. Then **you** run `classcharts setup` once.
+
+**Clone route.** Clone the repo straight into the skills folder (`git clone https://github.com/shan8851/classcharts-agent.git ~/.claude/skills/classcharts`). `SKILL.md` sits at the root, so the folder is the skill. Then run `./bin/classcharts setup` there.
+
+Either way, check it with `classcharts pupils`. Keep the password out of chat logs: type it into `setup`, not into a message to your agent.
 
 ## Commands
 
@@ -78,6 +97,8 @@ Point your agent at this repo and say something like: *"Install the ClassCharts 
 | `detentions` | Upcoming and past detentions |
 | `attendance [--from D]` | Percentage plus any absences or lates (default: this school year) |
 | `pupils` | Children linked to the account, and which sections their school shows |
+| `setup` | Sign in once (interactive, run by a person) |
+| `skill` | Print SKILL.md for installing into an agent |
 
 `DATE` can be `YYYY-MM-DD`, `today`, `tomorrow`, `yesterday`, `next`, or a weekday (`mon`, `friday`: the next one, today included). `day next` means the next day with lessons, skipping weekends and holidays. `week next` means the following week.
 
@@ -91,19 +112,19 @@ Text output is coloured in a terminal and plain when piped or run by an agent (`
 |---|---|
 | `CLASSCHARTS_EMAIL`, `CLASSCHARTS_PASSWORD` | Parent account login (required) |
 | `CLASSCHARTS_PUPIL` | Default child, by first name or id |
-| `CLASSCHARTS_ENV_FILE` | Use a different `.env` (default: the one next to `package.json`) |
+| `CLASSCHARTS_ENV_FILE` | Use a specific `.env` file |
 | `CLASSCHARTS_SESSION_FILE` | Session cache location (default: `~/.cache/classcharts-agent/session.json`) |
 
-The CLI loads `.env` wherever you call it from. Real environment variables take precedence.
+The login is looked for in this order: environment variables, `CLASSCHARTS_ENV_FILE`, a `.env` in a cloned repo, then `~/.config/classcharts-agent/.env` (written by `setup`).
 
 ## Privacy
 
-Credentials stay in your `.env`. Nothing is sent anywhere except `www.classcharts.com`. The only thing stored is the session token, in a file only you can read. Delete it to sign out.
+Credentials stay on your machine, in a file only you can read. Nothing is sent anywhere except `www.classcharts.com`. Besides the login, the only thing stored is the session token in `~/.cache/classcharts-agent/`. To sign out, delete both.
 
 ## Roadmap
 
 - ~~Announcements, behaviour, detentions, attendance and a digest~~ (v0.2.0).
-- Publish to npm (`npx classcharts-agent digest`).
+- ~~Publish to npm~~ (v0.3.0).
 - Maybe an MCP server, if agents want it more than a CLI.
 
 What the parent API offers, and what's deliberately left out (messages, anything that writes), is in [docs/API-MAP.md](docs/API-MAP.md). Releases and changes: [CHANGELOG.md](CHANGELOG.md).
@@ -115,7 +136,10 @@ Ideas and issues are welcome.
 ```bash
 pnpm install
 pnpm check    # typecheck + tests
+pnpm build    # compile to dist/ (what npm ships)
 ```
+
+Work happens on branches with a PR. Publishing a GitHub release publishes that version to npm through GitHub Actions (npm trusted publishing, so no token is stored).
 
 Tests use anonymised real responses in `test/fixtures/`. Never commit raw responses: `out/` and `.env` are gitignored for that reason.
 
