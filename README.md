@@ -1,5 +1,9 @@
 # classcharts-agent
 
+[![npm](https://img.shields.io/npm/v/@shan8851/classcharts-agent)](https://www.npmjs.com/package/@shan8851/classcharts-agent)
+[![check](https://github.com/shan8851/classcharts-agent/actions/workflows/check.yml/badge.svg)](https://github.com/shan8851/classcharts-agent/actions/workflows/check.yml)
+[![MIT licence](https://img.shields.io/github/license/shan8851/classcharts-agent)](LICENSE)
+
 A small, read-only CLI that gives an AI agent (or you) what a parent can see in [ClassCharts](https://www.classcharts.com): **homework, timetable, announcements, behaviour, detentions and attendance**, plus a one-shot `digest`.
 
 ```
