@@ -1,7 +1,7 @@
 // Announcements, behaviour, detentions and attendance: normalise and render.
 
-import { dayName } from "./dates.ts";
-import { heading, indent, plain, type RenderOptions, type Style, stripHtml, truncate } from "./format.ts";
+import { localDate, shortDate } from "./dates.ts";
+import { blank, heading, indent, plain, type RenderOptions, type Style, stripHtml, truncate } from "./format.ts";
 import type {
   AttendanceMeta,
   RawActivityPoint,
@@ -10,14 +10,6 @@ import type {
   RawDetention,
 } from "./types.ts";
 
-const blank = (s: string | null | undefined) => (s && String(s).trim() ? String(s).trim() : null);
-const short = (date: string) => `${dayName(date).slice(0, 3)} ${date}`;
-
-/** Calendar date of an ISO timestamp in the school's timezone. */
-export function localDate(iso: string, timeZone = "Europe/London"): string {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso.slice(0, 10) : new Intl.DateTimeFormat("en-CA", { timeZone }).format(d);
-}
 
 // ---- announcements ----------------------------------------------------------
 
@@ -55,7 +47,7 @@ export function renderAnnouncement(a: Announcement, opts: RenderOptions & { titl
     a.consentRequired && a.consentGiven === null ? s("yellow", "[consent needed]") : null,
     a.attachments.length ? s("dim", `[${a.attachments.length} attachment${a.attachments.length > 1 ? "s" : ""}]`) : null,
   ].filter(Boolean);
-  const lines = [`- ${short(a.date)} · ${s("bold", a.title)}${a.from ? s("dim", ` (${a.from})`) : ""}${flags.length ? ` ${flags.join(" ")}` : ""}`];
+  const lines = [`- ${shortDate(a.date)} · ${s("bold", a.title)}${a.from ? s("dim", ` (${a.from})`) : ""}${flags.length ? ` ${flags.join(" ")}` : ""}`];
   if (!opts.titleOnly && a.text) lines.push(opts.full ? indent(a.text, "    ") : s("dim", `    ${truncate(a.text, 200)}`));
   if (opts.full) for (const f of a.attachments) lines.push(`    attachment: ${f.name}`);
   return lines.join("\n");
@@ -122,7 +114,7 @@ export function renderBehaviourLine(b: BehaviourSummary, s: Style = plain): stri
 export function renderPoint(p: Point, s: Style = plain): string {
   const sign = p.polarity === "positive" ? s("green", `+${p.score}`) : p.polarity === "negative" ? s("red", `${-Math.abs(p.score)}`) : "·";
   const where = [p.lesson, p.teacher].filter(Boolean).join(", ");
-  return `- ${short(p.date)} ${p.time}  ${sign} ${p.reason}${where ? s("dim", ` (${where})`) : ""}${p.note ? ` · ${p.note}` : ""}`;
+  return `- ${shortDate(p.date)} ${p.time}  ${sign} ${p.reason}${where ? s("dim", ` (${where})`) : ""}${p.note ? ` · ${p.note}` : ""}`;
 }
 
 export function renderBehaviour(b: BehaviourSummary, points: Point[], opts: RenderOptions = {}): string {
@@ -147,8 +139,10 @@ export interface Detention {
   upcoming: boolean;
 }
 
-export function toDetention(raw: RawDetention, today: string): Detention {
-  const date = String(raw.date ?? "").slice(0, 10);
+export function toDetention(raw: RawDetention, today: string, timeZone?: string): Detention {
+  // A full timestamp may be UTC midnight for a BST date, so read it in the school's timezone.
+  const rawDate = String(raw.date ?? "");
+  const date = rawDate.length > 10 ? localDate(rawDate, timeZone) : rawDate;
   const t = raw.teacher;
   const teacher = t ? [t.title, t.first_name?.[0], t.last_name].filter(Boolean).join(" ") : "";
   return {
@@ -169,12 +163,17 @@ export function renderDetention(d: Detention, s: Style = plain): string {
   const when = [d.time, d.minutes ? `${d.minutes} min` : null, d.location].filter(Boolean).join(", ");
   const why = [d.reason, d.subject, d.teacher].filter(Boolean).join(", ");
   const status = d.upcoming ? s("red", "[upcoming]") : s("dim", `[${d.status === "yes" ? "attended" : d.status}]`);
-  return `- ${status} ${short(d.date)}${when ? ` ${when}` : ""} · ${d.type ?? "Detention"}${why ? s("dim", ` (${why})`) : ""}`;
+  return `- ${status} ${shortDate(d.date)}${when ? ` ${when}` : ""} · ${d.type ?? "Detention"}${why ? s("dim", ` (${why})`) : ""}`;
 }
 
 export function renderDetentions(list: Detention[], s: Style = plain): string {
   if (list.length === 0) return "No detentions.";
-  const sorted = [...list].sort((a, b) => Number(b.upcoming) - Number(a.upcoming) || b.date.localeCompare(a.date));
+  // Upcoming first, soonest first; then past ones, most recent first.
+  const sorted = [...list].sort(
+    (a, b) =>
+      Number(b.upcoming) - Number(a.upcoming) ||
+      (a.upcoming ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)),
+  );
   return sorted.map((d) => renderDetention(d, s)).join("\n");
 }
 
@@ -189,7 +188,7 @@ export interface AttendanceSummary {
   issues: { date: string; session: string; status: string; code: string; lateMinutes: number }[];
 }
 
-const pct = (v: number | string | undefined) => (v === undefined || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
+const pct = (v: number | string | null | undefined) => (v == null || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
 const FINE = new Set(["present", "", "no_mark", "not_required", "ignore"]);
 
 export function toAttendance(
@@ -222,7 +221,7 @@ export function renderAttendance(a: AttendanceSummary, opts: RenderOptions = {})
   const s = opts.style ?? plain;
   const lines = [heading(s, `Attendance ${a.from} → ${a.to}`), `  ${renderAttendanceLine(a, s)}`];
   for (const i of a.issues) {
-    lines.push(`  - ${short(i.date)} ${i.session}: ${i.status}${i.lateMinutes ? ` (${i.lateMinutes} min late)` : ""}`);
+    lines.push(`  - ${shortDate(i.date)} ${i.session}: ${i.status}${i.lateMinutes ? ` (${i.lateMinutes} min late)` : ""}`);
   }
   return lines.join("\n");
 }

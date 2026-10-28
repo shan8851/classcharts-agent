@@ -21,3 +21,14 @@ describe("envQuote", () => {
     expect(() => envQuote(`' " \``)).toThrow(/quote/);
   });
 });
+
+describe("shadowingEnvFiles", () => {
+  it("lists login files that would be read before the one setup writes", async () => {
+    const { shadowingEnvFiles } = await import("../src/setup.ts");
+    const dir = mkdtempSync(join(tmpdir(), "cc-shadow-"));
+    const clone = join(dir, ".env");
+    expect(shadowingEnvFiles(clone)).toEqual([]);
+    writeFileSync(clone, "X=1\n");
+    expect(shadowingEnvFiles(clone)).toEqual([clone]);
+  });
+});

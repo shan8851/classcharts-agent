@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { localDate } from "../src/dates.ts";
 import {
-  localDate,
   renderAnnouncement,
   renderAttendanceLine,
   renderBehaviour,
@@ -76,7 +76,19 @@ describe("detentions", () => {
     expect(list[1]).toMatchObject({ upcoming: false, status: "yes", teacher: null });
   });
 
-  it("renders upcoming first", () => {
+  it("reads full timestamps in the school's timezone", () => {
+    const [raw] = fixture("detentions.json").data;
+    const summer = toDetention({ ...raw, date: "2026-06-03T23:00:00+00:00" }, "2026-06-01", "Europe/London");
+    expect(summer.date).toBe("2026-06-04");
+  });
+
+  it("renders upcoming first, soonest first", () => {
+    const [soon] = list;
+    const later = { ...soon, date: "2026-11-20" };
+    expect(renderDetentions([later, soon]).split("\n")[0]).toContain("2026-11-03");
+  });
+
+  it("renders upcoming before past", () => {
     const lines = renderDetentions(list).split("\n");
     expect(lines[0]).toMatch(/^- \[upcoming\] Tue 2026-11-03 15:00, 30 min, Room 12 · After school/);
     expect(lines[1]).toMatch(/\[attended\] Wed 2026-10-14/);
@@ -92,5 +104,11 @@ describe("attendance", () => {
     expect(a.percentage).toBe(87.5);
     expect(a.issues).toEqual([{ date: "2026-10-20", session: "AM", status: "late", code: "L", lateMinutes: 12 }]);
     expect(renderAttendanceLine(a)).toBe("87.5% (since August 100%), 1 session not present");
+  });
+
+  it("treats a null percentage as unknown, not 0%", () => {
+    const a = toAttendance({}, { percentage: null, percentage_singe_august: null, sessions: [] }, "a", "b");
+    expect(a.percentage).toBeNull();
+    expect(renderAttendanceLine(a)).toMatch(/^\?, no absences/);
   });
 });

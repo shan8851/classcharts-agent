@@ -8,6 +8,7 @@ export function todayIn(timeZone: string, now = new Date()): string {
 
 export function addDays(date: string, n: number): string {
   const d = new Date(`${date}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return "invalid";
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
@@ -20,6 +21,18 @@ export function weekday(date: string): number {
 export function dayName(date: string): string {
   const n = DAYS[weekday(date)];
   return n[0].toUpperCase() + n.slice(1);
+}
+
+/** "Wed 2026-11-04" */
+export const shortDate = (date: string) => `${dayName(date).slice(0, 3)} ${date}`;
+
+/** "Wednesday 2026-11-04" */
+export const longDate = (date: string) => `${dayName(date)} ${date}`;
+
+/** Calendar date of an ISO timestamp in the school's timezone. */
+export function localDate(iso: string, timeZone = "Europe/London"): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso.slice(0, 10) : new Intl.DateTimeFormat("en-CA", { timeZone }).format(d);
 }
 
 export const isWeekend = (date: string) => weekday(date) === 0 || weekday(date) === 6;
@@ -43,7 +56,10 @@ export function schoolWeek(date: string): string[] {
  */
 export function resolveDate(input: string | undefined, today: string): string {
   const s = (input ?? "today").trim().toLowerCase();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    if (addDays(s, 0) !== s) throw new Error(`"${input}" isn't a real date.`);
+    return s;
+  }
   if (s === "today") return today;
   if (s === "tomorrow") return addDays(today, 1);
   if (s === "yesterday") return addDays(today, -1);

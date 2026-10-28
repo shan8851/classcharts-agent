@@ -1,7 +1,7 @@
 // Turn raw ClassCharts records into small, agent-friendly shapes and text.
 
-import { dayName } from "./dates.ts";
-import type { RawHomework, RawLesson, TimetableMeta } from "./types.ts";
+import { dayName, longDate, shortDate } from "./dates.ts";
+import type { RawHomework, RawLesson } from "./types.ts";
 
 export interface Lesson {
   date: string;
@@ -40,17 +40,26 @@ export interface Day {
   homeworkDue: Homework[];
 }
 
+// The named entities schools' rich-text editors actually produce. &amp; is decoded last.
+const ENTITIES: Record<string, string> = {
+  nbsp: " ", lt: "<", gt: ">", quot: '"', apos: "'",
+  pound: "£", euro: "€", rsquo: "\u2019", lsquo: "\u2018", rdquo: "\u201d", ldquo: "\u201c",
+  ndash: "\u2013", mdash: "\u2014", hellip: "\u2026", bull: "\u2022", copy: "©",
+};
+
+const codePoint = (n: number) => (Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : "");
+
 export function stripHtml(html = ""): string {
   return html
+    .replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, "")
     .replace(/<\s*(br|\/p|\/li|\/div)\s*\/?>/gi, "\n")
     .replace(/<li[^>]*>/gi, "- ")
     .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => codePoint(Number.parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => codePoint(Number(d)))
+    .replace(/&([a-z]+);/gi, (m, name) => ENTITIES[name.toLowerCase()] ?? m)
+    .replace(/&amp;/gi, "&")
+    .replace(/\u00a0/g, " ")
     .replace(/[ \t]+/g, " ")
     .replace(/\s*\n\s*/g, "\n")
     .trim();
@@ -61,7 +70,11 @@ export function truncate(s: string, max: number): string {
   return flat.length <= max ? flat : `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
-const blank = (s: string | null | undefined) => (s && s.trim() ? s.trim() : null);
+/** Trimmed string, or null when empty/missing. */
+export function blank(value: unknown): string | null {
+  const s = value == null ? "" : String(value).trim();
+  return s || null;
+}
 const hhmm = (iso: string) => iso.slice(11, 16);
 
 // Some schools' MIS exports period names like "wednesday - 08:30:00 - 08:50:00 - 2"
@@ -123,7 +136,6 @@ export function toHomework(raw: RawHomework): Homework {
 export function toDay(
   date: string,
   lessons: RawLesson[],
-  meta: TimetableMeta | undefined,
   homeworks: Homework[],
   schoolName?: string,
 ): Day {
@@ -157,7 +169,7 @@ export function renderHomework(h: Homework, opts: RenderOptions = {}): string {
     .join(", ");
   const meta = [h.minutes ? `${h.minutes} min` : null, h.teacher].filter(Boolean).join(", ");
   const tag = s(h.done ? "green" : "yellow", `[${bits}]`);
-  const lines = [`- ${tag} due ${dayName(h.due).slice(0, 3)} ${h.due} · ${s("bold", `${h.subject}: ${h.title}`)}${meta ? s("dim", ` (${meta})`) : ""}`];
+  const lines = [`- ${tag} due ${shortDate(h.due)} · ${s("bold", `${h.subject}: ${h.title}`)}${meta ? s("dim", ` (${meta})`) : ""}`];
   if (h.description) {
     lines.push(opts.full ? indent(h.description, "    ") : s("dim", `    ${truncate(h.description, 160)}`));
   }
@@ -171,8 +183,7 @@ export function renderHomework(h: Homework, opts: RenderOptions = {}): string {
 export function renderHomeworkList(list: Homework[], opts: RenderOptions = {}): string {
   if (list.length === 0) return "No homework in this range.";
   const todo = list.filter((h) => !h.done).length;
-  const sorted = [...list].sort((a, b) => a.due.localeCompare(b.due));
-  return [`${list.length} homework (${todo} todo):`, ...sorted.map((h) => renderHomework(h, opts))].join("\n");
+  return [`${list.length} homework (${todo} todo):`, ...list.map((h) => renderHomework(h, opts))].join("\n");
 }
 
 export function renderLesson(l: Lesson, s: Style = plain): string {
@@ -182,9 +193,8 @@ export function renderLesson(l: Lesson, s: Style = plain): string {
 
 export function renderDay(d: Day, opts: RenderOptions = {}): string {
   const week = d.lessons.find((l) => l.week != null)?.week;
-  const head = `${d.day} ${d.date}${week ? ` · week ${week}` : ""}`;
   const s = opts.style ?? plain;
-  const lines = [s("bold", head)];
+  const lines = [heading(s, `${longDate(d.date)}${week ? ` · week ${week}` : ""}`)];
   if (!d.schoolDay) lines.push("  No lessons (weekend, holiday or INSET day).");
   else {
     const first = d.lessons[0];

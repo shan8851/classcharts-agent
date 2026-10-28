@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, statSync } from "node:fs";
+import { mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ClassChartsAuthError, ClassChartsClient } from "../src/client.ts";
@@ -144,6 +144,39 @@ describe("ClassChartsClient", () => {
     expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(1);
   });
 
+  it("parallel requests on a rejected cached session share one login", async () => {
+    const store = memorySessionStore();
+    store.save({ cookie: "c=1", sessionId: "dead", refreshedAt: Date.now() });
+    const { fn, calls } = mockFetch((url, init) => {
+      if (url.endsWith("/parent/login")) return loginResponse();
+      const auth = (init.headers as Record<string, string>).Authorization;
+      return auth === "Basic dead" ? json({ success: 0, error: "Session expired" }) : json({ success: 1, data: [], meta: {} });
+    });
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn, session: store });
+    await Promise.all([1, 2, 3, 4, 5].map((i) => client.timetable(1, `2026-10-2${i}`)));
+    expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(1);
+    expect(store.load()?.sessionId).toBe("sess-1");
+  });
+
+  it("gives up after one fresh login instead of looping", async () => {
+    const { fn, calls } = mockFetch((url) =>
+      url.endsWith("/parent/login") ? loginResponse() : json({ success: 0, error: "Nope" }),
+    );
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    await expect(client.pupils()).rejects.toThrow(/Nope/);
+    expect(calls.filter((c) => c.url.endsWith("/parent/login"))).toHaveLength(2);
+  });
+
+  it("reports a malformed login cookie as an auth error", async () => {
+    const { fn } = mockFetch(() => {
+      const headers = new Headers({ location: "/mobile/parent" });
+      headers.append("set-cookie", "parent_session_credentials=not-json; path=/");
+      return new Response(null, { status: 302, headers });
+    });
+    const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
+    await expect(client.pupils()).rejects.toThrow(/not understood/);
+  });
+
   it("explains the login rate limit", async () => {
     const { fn } = mockFetch(
       () =>
@@ -153,7 +186,7 @@ describe("ClassChartsClient", () => {
         }),
     );
     const client = new ClassChartsClient({ email: "e", password: "p", fetch: fn });
-    await expect(client.pupils()).rejects.toThrow(/too many attempts/);
+    await expect(client.pupils()).rejects.toThrow(/too many attempts.*wrong/);
   });
 });
 
@@ -165,5 +198,11 @@ describe("fileSessionStore", () => {
     expect(fileSessionStore("parent@example.com", path).load()).toEqual({ cookie: "c", sessionId: "s", refreshedAt: 5 });
     expect(fileSessionStore("other@example.com", path).load()).toBeNull();
     expect(statSync(path).mode & 0o777).toBe(0o600);
+  });
+
+  it("ignores a corrupt session file", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "cc-")), "session.json");
+    writeFileSync(path, "{not json");
+    expect(fileSessionStore("e", path).load()).toBeNull();
   });
 });

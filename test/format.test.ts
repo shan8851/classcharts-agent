@@ -41,13 +41,13 @@ describe("lessons", () => {
   });
 
   it("renders a school day and a holiday", () => {
-    const day = toDay("2026-10-21", tt.data, tt.meta, [], SCHOOL);
+    const day = toDay("2026-10-21", tt.data, [], SCHOOL);
     const text = renderDay(day);
     expect(text).toContain("Wednesday 2026-10-21 · week 2");
     expect(text).toContain("08:30–14:45, 6 lessons");
 
     const hol = fixture("timetable-2026-10-28.json");
-    const holiday = toDay("2026-10-28", hol.data, hol.meta, [], SCHOOL);
+    const holiday = toDay("2026-10-28", hol.data, [], SCHOOL);
     expect(holiday.schoolDay).toBe(false);
     expect(renderDay(holiday)).toContain("No lessons");
   });
@@ -75,6 +75,14 @@ describe("homework", () => {
     expect(stripHtml("<p>a&nbsp;&amp;&nbsp;b</p><ul><li>one</li></ul>")).toBe("a & b\n- one");
   });
 
+  it("decodes the entities schools' editors produce and drops scripts and styles", () => {
+    expect(stripHtml("Trip costs &pound;12 &ndash; it&rsquo;s &#8216;fun&#8217; &#x2014; &hellip;")).toBe(
+      "Trip costs £12 – it’s ‘fun’ — …",
+    );
+    expect(stripHtml("<style>p{color:red}</style><p>Hi</p><script>alert(1)</script>")).toBe("Hi");
+    expect(stripHtml("&amp;pound; &unknown; &#0;")).toBe("&pound; &unknown;");
+  });
+
   it("renders a compact list, todo count first", () => {
     const text = renderHomeworkList([art, geo]);
     expect(text.split("\n")[0]).toBe("2 homework (1 todo):");
@@ -84,7 +92,7 @@ describe("homework", () => {
   });
 
   it("attaches homework to the day it is due", () => {
-    const day = toDay("2026-11-04", [], undefined, [geo, art], SCHOOL);
+    const day = toDay("2026-11-04", [], [geo, art], SCHOOL);
     expect(day.homeworkDue.map((h) => h.subject)).toEqual(["Art and Design / Art"]);
   });
 });

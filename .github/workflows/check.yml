@@ -7,39 +7,23 @@ on:
 
 jobs:
   check:
+    strategy:
+      matrix:
+        # Oldest supported (first with type stripping on by default) and current.
+        node: ["22.18", "24"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm build
       - run: ./bin/classcharts --help
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-  # The published package runs compiled JS, so check it on the oldest supported Node.
-  oldest-node:
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20.12"
       - run: node dist/cli.js --version
-      - run: node dist/cli.js --help
-      - run: node dist/cli.js skill | head -3
       - name: Clear error without a login
         run: |
           set +e

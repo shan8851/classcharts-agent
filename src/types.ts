@@ -114,7 +114,7 @@ export interface RawAttendanceSession {
 }
 
 export interface AttendanceMeta {
-  percentage: number | string;
-  percentage_singe_august: number | string; // sic
+  percentage: number | string | null;
+  percentage_singe_august: number | string | null; // sic
   sessions: string[];
 }

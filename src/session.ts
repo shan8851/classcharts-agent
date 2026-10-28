@@ -2,7 +2,7 @@
 // ClassCharts rate-limits logins ("Too many attempts"), and agents call the CLI often.
 
 import { createHash } from "node:crypto";
-import { chmodSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -15,7 +15,6 @@ export interface Session {
 export interface SessionStore {
   load(): Session | null;
   save(session: Session): void;
-  clear(): void;
 }
 
 export function defaultSessionPath(): string {
@@ -46,13 +45,10 @@ export function fileSessionStore(email: string, path = defaultSessionPath()): Se
         // Caching is best effort; the CLI still works without it.
       }
     },
-    clear() {
-      rmSync(path, { force: true });
-    },
   };
 }
 
 export const memorySessionStore = (): SessionStore => {
   let s: Session | null = null;
-  return { load: () => s, save: (v) => void (s = v), clear: () => void (s = null) };
+  return { load: () => s, save: (v) => void (s = v) };
 };
