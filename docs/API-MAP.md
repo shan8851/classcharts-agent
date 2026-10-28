@@ -20,6 +20,12 @@ Status: ✅ in the CLI · 🔜 worth adding · ⏸ not planned
 | Messages | `POST /apiparentmessaging/getthread` body `pupil_id, teacher_id` | ⏸ | Thread metadata plus `messages`, `locked`. |
 | Messages | `POST /apiparentmessaging/getmessagesforthread` body `thread_id, message_id, direction, pupil_id` | ⏸ | Paginated messages (`meta.limit`). |
 
+## Sessions
+
+- Login (`POST /parent/login`, form-encoded, `redirect: manual`) answers `302` with cookies; `parent_session_credentials` holds the `session_id` used as `Authorization: Basic <session_id>`.
+- `POST /apiv2parent/ping` with `include_data=true` returns a fresh `meta.session_id`.
+- An idle session is dead within 30 minutes (measured 2026-10-28), so agents calling a few times a day log in most times. That's fine: it's bursts of logins that trigger "Too many attempts" (about 5 minutes).
+
 ## Not planned, and why
 
 - **Messages:** private parent–teacher conversations don't belong in a family group chat. Sending is a write, so it's out by design.
