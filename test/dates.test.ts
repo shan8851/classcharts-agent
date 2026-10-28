@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, nextSchoolDay, resolveDate, schoolWeek, todayIn } from "../src/dates.ts";
+import { addDays, longDate, nextSchoolDay, resolveDate, schoolWeek, schoolYearStart, shortDate, todayIn } from "../src/dates.ts";
 
 describe("dates", () => {
   it("todayIn uses the school's timezone", () => {
@@ -31,5 +31,18 @@ describe("dates", () => {
     expect(resolveDate("mon", today)).toBe("2026-11-02");
     expect(resolveDate("2026-11-04", today)).toBe("2026-11-04");
     expect(() => resolveDate("someday", today)).toThrow(/Can't read date/);
+    expect(() => resolveDate("2026-13-45", today)).toThrow(/isn't a real date/);
+    expect(() => resolveDate("2026-02-30", today)).toThrow(/isn't a real date/);
+  });
+
+  it("school year starts 1 September", () => {
+    expect(schoolYearStart("2026-09-01")).toBe("2026-09-01");
+    expect(schoolYearStart("2026-08-31")).toBe("2025-09-01");
+    expect(schoolYearStart("2027-03-15")).toBe("2026-09-01");
+  });
+
+  it("formats dates", () => {
+    expect(shortDate("2026-11-04")).toBe("Wed 2026-11-04");
+    expect(longDate("2026-11-04")).toBe("Wednesday 2026-11-04");
   });
 });

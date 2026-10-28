@@ -17,12 +17,12 @@ If `classcharts` isn't on the PATH but this skill folder is a clone of the repo,
 
 | Question | Command |
 |---|---|
-| "Anything I need to know?" / evening or morning summary | `digest` (one call covers everything below) |
+| "Anything I need to know?" / evening summary | `digest` (one call: next school day, homework to do including overdue, detentions, behaviour, announcements, attendance) |
 | "What's on tomorrow?" / "Is there school Monday?" | `day tomorrow` · `day monday` |
 | "What's the next school day?" (evenings, Fridays, holidays) | `day next` (skips weekends and holidays) |
 | "What does this week / next week look like?" | `week` · `week next` (the following week) |
 | "What homework is outstanding?" | `homework --todo` |
-| "What homework is due this week?" | `homework --from monday --to friday` |
+| "What homework is due this week?" | `week` (lessons plus homework due each day) or `homework --from today --to friday` |
 | "Tell me more about the art homework" | `homework --full` (full text, links, attachment names) |
 | "Has the school sent anything?" / "Any trips or forms?" | `announcements` (`--full` for the whole text) |
 | "How's behaviour been this week?" | `behaviour` (`--from` for longer) |
@@ -42,7 +42,8 @@ If more than one child is linked, pass `--pupil <first name or id>`.
 - Times are in the school's timezone. Gaps between lessons are breaks or lunch.
 - Behaviour reasons and scores are set by each school (e.g. "Commendation", "S1"). Report them as given; don't guess what a code means.
 - `[consent needed]` on an announcement means the school wants a parent's response in ClassCharts. You can't give it; tell the parents.
-- If a section says the school doesn't show it, that's the school's ClassCharts setting, not an error.
+- If a section says the school doesn't show it (`hiddenBySchool` in JSON), that's the school's ClassCharts setting, not an error.
+- `[todo]` homework due before today is overdue: mention it first.
 - Rooms and teachers are as the school records them.
 
 ## Answering well
@@ -55,12 +56,12 @@ If more than one child is linked, pass `--pupil <first name or id>`.
 
 ## Errors
 
-- Exit code 2: a login problem. "Too many attempts" means ClassCharts is blocking logins for a few minutes: wait, don't retry in a loop. "Login failed" means the parent email/password in `.env` is wrong, or ClassCharts changed its login: tell the human.
+- Exit code 2: a login problem. "No ClassCharts login found": a person needs to run `classcharts setup`. "Sent the login back to its sign-in page": usually too many attempts (wait a few minutes, don't retry in a loop), otherwise a wrong email or password; tell the human. "Login failed" or "not understood": wrong details, or ClassCharts changed its login; tell the human.
 - The session is cached in `~/.cache/classcharts-agent/`, so repeated calls don't log in again. Prefer one `week` call over five `day` calls anyway.
 - Exit code 1: a bad date or another error. The message says what went wrong.
 
 ## Setup (once)
 
-- Install: `npm install -g @shan8851/classcharts-agent` (Node 20.12+), or clone the repo.
+- Install: `npm install -g @shan8851/classcharts-agent` (Node 22.18+), or clone the repo.
 - Sign in: **a person** runs `classcharts setup` in a terminal. Don't ask for the password in chat and don't try to run `setup` yourself; it refuses non-interactive input.
 - Check: `classcharts pupils`. "No ClassCharts login found" (exit 2) means setup hasn't been run.

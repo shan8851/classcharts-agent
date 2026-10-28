@@ -9,8 +9,8 @@ Read-only ClassCharts CLI + agent skill (homework, timetable, announcements, beh
 - **Read-only.** Don't add write endpoints (tick homework, behaviour, password, messages) without Shan asking.
 - **Nothing personal in the repo.** No child names, school, teachers, ids or raw responses. `.env` and `out/` are gitignored. Fixtures in `test/fixtures/` are anonymised; check with a grep before committing new ones.
 - **Generic over school-specific.** Some schools' MIS quirks (e.g. encoded period names, room prefixes) are handled by pattern, never by hard-coding a school.
-- No runtime dependencies. Clones run `src/*.ts` directly on Node 23.6+ (`erasableSyntaxOnly`, so no enums or namespaces). npm ships `dist/` (built with `pnpm build`), which must keep working on Node 20.12: no newer Node APIs without a fallback.
-- `pnpm check` (tsc + vitest) before calling anything done. Live check: `./bin/classcharts day next` (needs `.env`).
+- No runtime dependencies. Node 22.18+ (`.nvmrc`: 24). Clones run `src/*.ts` directly (`erasableSyntaxOnly`, so no enums or namespaces); npm ships `dist/` built with `pnpm build`. CI runs on 22.18 and 24.
+- `pnpm check` (tsc + vitest) before calling anything done. `test/cli.test.ts` runs the CLI against a fake ClassCharts built from the fixtures: add a case there for new commands. Live check: `./bin/classcharts day next` (needs `.env`).
 
 ## Layout
 
@@ -19,7 +19,8 @@ Read-only ClassCharts CLI + agent skill (homework, timetable, announcements, beh
 - `src/format.ts`: homework/timetable shapes, text rendering, styles
 - `src/sections.ts`: announcements, behaviour, detentions, attendance
 - `src/dates.ts`: date words, school weeks, timezone
-- `src/cli.ts`: commands; `bin/classcharts` is the clone launcher, `dist/cli.js` the npm one
+- `src/cli.ts`: commands; exports `main()` (returns output, throws on error) so tests can run it. `bin/classcharts` is the clone launcher, `dist/cli.js` the npm one
+- `src/digest.ts`: the `digest` command
 - `src/setup.ts`: interactive sign-in, saved to `~/.config/classcharts-agent/.env`
 - `SKILL.md`: what the agent reads
 

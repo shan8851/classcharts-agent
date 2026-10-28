@@ -1,7 +1,7 @@
 // `classcharts setup`: a person enters the parent login once; it's tested, then saved privately.
 // Deliberately interactive-only, so an agent can't pipe a password through it.
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -36,8 +36,9 @@ function askHidden(prompt: string): Promise<string> {
       process.stdout.write("\n");
     };
     const onData = (chunk: string) => {
+      if (chunk.startsWith("\u001b")) return; // arrow keys and other escape sequences
       for (const ch of chunk) {
-        if (ch === "\r" || ch === "\n") return done(), resolve(value);
+        if (ch === "\r" || ch === "\n" || ch === "\u0004") return done(), resolve(value);
         if (ch === "\u0003") return done(), reject(new Error("Cancelled."));
         if (ch === "\u007f" || ch === "\b") value = value.slice(0, -1);
         else value += ch;
@@ -47,7 +48,12 @@ function askHidden(prompt: string): Promise<string> {
   });
 }
 
-export async function setup(): Promise<string> {
+/** Login files that would be read before the one `setup` writes. */
+export function shadowingEnvFiles(cloneEnvFile: string): string[] {
+  return [process.env.CLASSCHARTS_ENV_FILE, cloneEnvFile].filter((f): f is string => !!f && existsSync(f));
+}
+
+export async function setup(cloneEnvFile: string): Promise<string> {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
     throw new Error("`classcharts setup` asks for a password, so a person needs to run it in a terminal.");
   }
@@ -81,6 +87,15 @@ export async function setup(): Promise<string> {
     `# Saved by \`classcharts setup\`. Readable only by you.\nCLASSCHARTS_EMAIL=${envQuote(email)}\nCLASSCHARTS_PASSWORD=${envQuote(password)}\n${pupilLine}`,
     { mode: 0o600 },
   );
+  chmodSync(file, 0o600); // mode only applies when the file is created
+  const shadows = shadowingEnvFiles(cloneEnvFile);
+  const warning = shadows.length
+    ? `\nNote: ${shadows.join(" and ")} will be used instead of this file until you remove ${shadows.length > 1 ? "them" : "it"}.`
+    : "";
+  const envOverride =
+    process.env.CLASSCHARTS_EMAIL && process.env.CLASSCHARTS_PASSWORD
+      ? "\nNote: CLASSCHARTS_EMAIL and CLASSCHARTS_PASSWORD are set in your environment and take priority."
+      : "";
   const names = pupils.map((p) => `${p.name} (${p.school_name})`).join(", ");
-  return `Signed in. Found: ${names || "no linked children"}.\nSaved to ${file}.\nTry: classcharts digest`;
+  return `Signed in. Found: ${names || "no linked children"}.\nSaved to ${file}.${warning}${envOverride}\nTry: classcharts digest`;
 }

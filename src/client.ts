@@ -84,8 +84,10 @@ export class ClassChartsClient {
     const creds = pairs.find((c) => c.startsWith("parent_session_credentials="));
     if (res.status !== 302 || !creds) {
       if (res.status === 302 && /\/parent\/login/.test(res.headers.get("location") ?? "")) {
+        // Seen for "Too many attempts"; a wrong password may look the same.
         throw new ClassChartsAuthError(
-          "ClassCharts is refusing logins for now (too many attempts). Wait a few minutes and try again.",
+          "ClassCharts sent the login back to its sign-in page. Usually that's too many attempts " +
+            "(wait a few minutes, don't retry in a loop); otherwise the email or password is wrong.",
         );
       }
       throw new ClassChartsAuthError(
@@ -94,8 +96,14 @@ export class ClassChartsClient {
       );
     }
     this.cookie = pairs.join("; ");
-    const value = decodeURIComponent(creds.slice(creds.indexOf("=") + 1));
-    this.sessionId = JSON.parse(value).session_id;
+    try {
+      this.sessionId = JSON.parse(decodeURIComponent(creds.slice(creds.indexOf("=") + 1))).session_id;
+    } catch {
+      this.sessionId = "";
+    }
+    if (!this.sessionId) {
+      throw new ClassChartsAuthError("Login response not understood; ClassCharts may have changed its login flow.");
+    }
     this.refreshedAt = this.now();
     this.persist();
   }
@@ -170,7 +178,8 @@ export class ClassChartsClient {
   }
 
   /** Behaviour points, newest first, following ClassCharts' `last_id` pagination. */
-  async activity(pupilId: number, range: { from: string; to: string }, maxPages = 20): Promise<RawActivityPoint[]> {
+  /** Up to `maxPages` pages of 10 points (500 by default: more than a school year for most pupils). */
+  async activity(pupilId: number, range: { from: string; to: string }, maxPages = 50): Promise<RawActivityPoint[]> {
     const all: RawActivityPoint[] = [];
     let lastId: string | undefined;
     for (let page = 0; page < maxPages; page++) {

@@ -43,7 +43,7 @@ It's built for family assistants: a WhatsApp group bot, Hermes, Claude Code, any
 
 ### From npm (recommended)
 
-Needs Node **20.12+**.
+Needs Node **22.18+** (24 recommended).
 
 ```bash
 npm install -g @shan8851/classcharts-agent
@@ -55,7 +55,7 @@ classcharts digest
 
 ### From a clone
 
-Needs Node **23.6+** (it runs the TypeScript directly, with no build step).
+Needs Node **22.18+**. Node runs the TypeScript directly, with no build step.
 
 ```bash
 git clone https://github.com/shan8851/classcharts-agent.git
@@ -65,6 +65,8 @@ cd classcharts-agent
 ```
 
 To call it from anywhere, link it onto your PATH: `ln -s "$PWD/bin/classcharts" ~/.local/bin/classcharts`.
+
+Works on macOS, Linux and Windows. On Windows, use the npm install (the clone launcher `bin/classcharts` is a shell script; run `node src/cli.ts` instead), and note that Windows doesn't enforce the "readable only by you" file permission on the saved login, so it relies on your user profile's protection.
 
 ## Give it to your agent
 
